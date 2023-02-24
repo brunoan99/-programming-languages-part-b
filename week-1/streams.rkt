@@ -36,6 +36,28 @@ So given a stream st, the client can get any number of elements
 (Usually bind (cdr (s)) to a variable or pass to a recursive function)
 
 |#
+
+#| Defining Streams
+|#
+(define ones (lambda () (cons 1 ones)))
+
+(define nats
+  (letrec ([f (lambda (x) (cons x (lambda () (f (+ x 1)))))])
+    (lambda () (f 1))))
+
+(define powers-of-two
+  (letrec ([f (lambda (x) (cons x (lambda () (f (* x 2)))))])
+    (lambda () (f 1))))
+
+(define (stream-maker fn arg)
+  (letrec ([f (lambda (x)
+                (cons x (lambda () (f (fn x arg)))))])
+    (lambda () (f arg))))
+(define nats2  (stream-maker + 1))
+(define powers2 (stream-maker * 2))
+
+#| Using Streams
+|#
 (define (number-untill stream tester)
   (letrec ([f (lambda (stream ans)
                 (let ([pr (stream)])
