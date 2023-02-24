@@ -35,6 +35,10 @@ In general, might not know how many times a result is needed
         [(= x 1) (y-thunk)]
         [#t (+ (y-thunk) (my-mult (- x 1) y-thunk ))]))
 
+(define x (lambda () (my-mult 0 (lambda () (slow-add 3 4)))))
+(define y (lambda () (my-mult 1 (lambda () (slow-add 3 4)))))
+(define z (lambda () (my-mult 10 (lambda () (slow-add 3 4)))))
+
 #| Best of both worlds
 
 Assuming some expensive computation has no side effects, ideally we would:
