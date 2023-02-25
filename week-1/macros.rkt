@@ -136,3 +136,64 @@ When in doubt, resist defining a macro?
 But they can be used well and the optional material should help
 
 |#
+
+#| More Macro Examples |#
+
+#|
+  1. A for loop for executing a body a fixed number of times
+    - Show a macro that purposely re-evaluates some expressions and not others
+
+  2. Allow 0, 1 or 2 local bindings with fewer parens that let*
+    - Show a macro with multiple cases
+
+  3. A re-implementation of let* in terms of let
+     - Shows a macro taking any number of arguments
+     - Shows a recursive macro
+|#
+
+#| 1. |#
+(define-syntax for
+  (syntax-rules (to do)
+    [(for lo to hi do body)
+      (let ([l lo]
+            [h hi])
+        (letrec ([loop (lambda (it)
+                          (if (> it h)
+                              #t
+                              (begin body (loop (+ it 1)))))])
+          (loop l)))]))
+
+(define (f x) (begin (print "A") x))
+(define (g x) (begin (print "B") x))
+(define (h x) (begin (print "C") x))
+(for (f 7) to (g 11) do (h 9))  #| "A""B""C""C""C""C""C"#t
+                                 evaluates (f 7) one time (g 11) one time and the body 5 times
+|#
+(for (f 11) to (g 7) do (h 9)) #| "A""B"#t
+                                  evaluates (f 11) one time (g 7) one time and the body 0 times
+|#
+
+
+#| 2. |#
+(define-syntax let2
+  (syntax-rules ()
+    [(let2 () body)
+      body]
+    [(let2 (var val) body)
+     (let ([var val]) body)]
+    [(let2 (var1 val1 var2 val2) body)
+     (let ([var1 val1])
+      (let ([var2 val2])
+        body))]))
+
+#| 3. |#
+(define-syntax my-let*
+  (syntax-rules ()
+    [(my-let* () body)
+     body]
+    [(my-let* ([var0 val0]
+               [var-rest val-rest] ...)
+              body)
+     (let ([var0 val0])
+       (my-let* ([var-rest val-rest] ...)
+                body))]))
