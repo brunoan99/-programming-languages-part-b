@@ -229,7 +229,7 @@ See code for language that adds, booleans, number-comparison, and conditionals:
             (let ([v1 (eval-exp (multiply-e1 e))]
                   [v2 (eval-exp (multiply-e2 e))])
               (if (and (const? v1) (const? v2))
-                  (const (+ (const-int v1) (const-int v2)))
+                  (const (* (const-int v1) (const-int v2)))
                   (error "multiply called to non-number")))]
         [(bool? e) e]
         [(eq-num? e)
