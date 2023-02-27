@@ -171,3 +171,60 @@ Will not focus on Racket symbols like 'foo
   - Unlike strings, compare two symbols with eq? which is fast
 
 |#
+
+#| Datatype-Programming in Racket With Structs |#
+
+#| New feature
+
+  (struct foo (bar baz quux) #:transparent)
+
+Defines a new kind of thing and introduces several new functions:
+  - (foo e1 e2 e3) return "a foo" with bar, ba, quux fields holding results of evaluating e1, e2 and e3
+  - (foo? e) evaluates e and return #t if and only if the result is something that was made with the foo function
+  - (foo-bar e) evaluates e. If result was made with the foo function, return the contents of the bar field, else an error
+  - (foo-baz e) evaluates e. If result was made with the foo function, return the contents of the baz field, else an error
+  - (foo-quux e) evaluates e. If result was made with the foo function, return the contents of the quux field, else an error
+
+|#
+
+#| An idiom |#
+(struct const (int) #:transparent)
+(struct negate (e) #:transparent)
+(struct add (e1 e2) #:transparent)
+(struct multiply (e1 e2) #:transparent)
+#|
+For "datatypes" like exp, create one struct for each "kind of exp"
+  - structs are like ML constructors!
+  - But provide constructor, tester, and extractor functions
+    - Instead of patterns
+    - E.g., const, const?, const-int
+  - Dynamic typing means "these are the kinds of exp" is "in comments" rather than a type system
+  - Dynamic typing means "types" of fields are also "in comments"
+
+|#
+(define (eval-exp-struct e)
+  (cond [(const? e) e]
+        [(negate? e)    (let ([v (const-int (eval-exp-struct (negate-e e)))])
+                          (const (- v)))]
+        [(add? e)       (let ([v1 (const-int (eval-exp-struct (add-e1 e)))]
+                              [v2 (const-int (eval-exp-struct (add-e2 e)))])
+                          (const (+ v1 v2)))]
+        [(multiply? e)  (let ([v1 (const-int (eval-exp-struct (multiply-e1 e)))]
+                              [v2 (const-int (eval-exp-struct (multiply-e2 e)))])
+                          (const (* v1 v2)))]
+        [#t (error ("eval-exp-struct expected an exp"))]))
+
+(define a-test (eval-exp-struct (multiply (negate (add (const 2) (const 2))) (const 7))))
+
+#| Attributes
+
+- #:transparent is an optional attribute on struct definitions
+  - For us, prints struct values in the REPL rather than hiding them, which is convenient for debugging
+
+- #:mutable is another optional attribute on struct definitions
+  - Provide more functions, for example:
+    (struct card (suit rank) #:transparent #:mutable)
+    ; also defines set-card-suit!, set-card-rank!
+  - Can decide if each struct supports mutation, with usual advantages and disadvantages
+  - mcons is just a predefined mutable struct
+|#
